@@ -26,6 +26,18 @@ function safeName(name: string) {
   return base.slice(-80) || "file";
 }
 
+// Diagnostic: GET /api/upload shows which storage backend is active.
+export async function GET() {
+  const blob = !!process.env.BLOB_READ_WRITE_TOKEN;
+  const onVercel = !!process.env.VERCEL;
+  return NextResponse.json({
+    ok: true,
+    onVercel,
+    blobConfigured: blob,
+    backend: blob ? "vercel-blob" : onVercel ? "NONE — Blob token missing (read-only FS)" : "local-folder",
+  });
+}
+
 export async function POST(req: Request) {
   let form: FormData;
   try {
@@ -60,6 +72,15 @@ export async function POST(req: Request) {
         addRandomSuffix: false,
       });
       return NextResponse.json({ ok: true, url: blob.url, name: originalName, size: file.size });
+    }
+
+    // On Vercel (read-only FS) with no Blob token, fail with a clear message
+    // instead of an confusing ENOENT/mkdir error.
+    if (process.env.VERCEL) {
+      return NextResponse.json(
+        { ok: false, error: "File storage isn't set up. Create a Vercel Blob store, connect it to this project, and redeploy (adds BLOB_READ_WRITE_TOKEN)." },
+        { status: 500 }
+      );
     }
 
     // 2) Local folder store (writable filesystem).
