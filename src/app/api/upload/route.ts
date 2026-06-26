@@ -26,15 +26,24 @@ function safeName(name: string) {
   return base.slice(-80) || "file";
 }
 
-// Diagnostic: GET /api/upload shows which storage backend is active.
+// Diagnostic: GET /api/upload shows storage + database + auth status.
 export async function GET() {
   const blob = !!process.env.BLOB_READ_WRITE_TOKEN;
   const onVercel = !!process.env.VERCEL;
+  const firestore = !!(
+    process.env.FIREBASE_ADMIN_PROJECT_ID &&
+    process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
+    process.env.FIREBASE_ADMIN_PRIVATE_KEY
+  );
+  const firebaseAuth = !!(
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+  );
   return NextResponse.json({
     ok: true,
     onVercel,
-    blobConfigured: blob,
-    backend: blob ? "vercel-blob" : onVercel ? "NONE — Blob token missing (read-only FS)" : "local-folder",
+    storage: blob ? "vercel-blob ✓" : onVercel ? "MISSING — create a Blob store" : "local-folder",
+    database: firestore ? "firestore ✓" : "DEMO — data will NOT persist (add FIREBASE_ADMIN_* env vars)",
+    auth: firebaseAuth ? "firebase ✓" : "simple-login (add NEXT_PUBLIC_FIREBASE_* env vars)",
   });
 }
 
