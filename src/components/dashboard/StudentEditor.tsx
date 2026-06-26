@@ -8,6 +8,7 @@ import {
   MessageSquare, Award, Link2, RefreshCw, Copy, Power, Eye, Check, FileDown,
 } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
+import { ImagePicker } from "./ImagePicker";
 import { TagInput } from "@/components/ui/TagInput";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { cn, formatDate, timeAgo } from "@/lib/utils";
@@ -155,12 +156,7 @@ function RowDelete({ onClick }: { onClick: () => void }) {
 function ProfileTab({ s, set, setS }: { s: Student; set: any; setS: any }) {
   return (
     <Card>
-      <div className="flex items-center gap-4">
-        <Avatar name={s.name || "?"} src={s.image} size={64} ring />
-        <Field label="Photo URL">
-          <input className="input-field w-72" value={s.image ?? ""} onChange={(e) => set("image", e.target.value)} placeholder="https://… or /images/student.jpg" />
-        </Field>
-      </div>
+      <ImagePicker name={s.name} value={s.image} onChange={(url) => set("image", url)} label="Student photo" size={64} />
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Full name"><input className="input-field" value={s.name} onChange={(e) => set("name", e.target.value)} placeholder="Student name" /></Field>
         <Field label="Grade / Class"><input className="input-field" value={s.grade} onChange={(e) => set("grade", e.target.value)} placeholder="e.g. Grade 12 (A/L)" /></Field>

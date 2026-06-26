@@ -8,6 +8,7 @@ import {
   CalendarClock, Landmark, Palette,
 } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
+import { ImagePicker } from "./ImagePicker";
 import { TagInput } from "@/components/ui/TagInput";
 import { cn } from "@/lib/utils";
 import { uid } from "@/lib/factories";
@@ -92,12 +93,7 @@ function Del({ onClick }: { onClick: () => void }) {
 function Identity({ p, set }: { p: TutorProfile; set: any }) {
   return (
     <Card>
-      <div className="flex items-center gap-4">
-        <Avatar name={p.name} src={p.avatar} size={72} ring />
-        <Field label="Profile photo URL" hint="Place the file in /public/images and use e.g. /images/danuka.jpg">
-          <input className="input-field w-80" value={p.avatar ?? ""} onChange={(e) => set("avatar", e.target.value)} />
-        </Field>
-      </div>
+      <ImagePicker name={p.name} value={p.avatar} onChange={(url) => set("avatar", url)} label="Profile photo" size={72} />
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Name"><input className="input-field" value={p.name} onChange={(e) => set("name", e.target.value)} /></Field>
         <Field label="Years of experience"><input type="number" className="input-field" value={p.yearsExperience} onChange={(e) => set("yearsExperience", +e.target.value)} /></Field>

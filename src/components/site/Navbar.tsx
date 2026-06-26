@@ -64,9 +64,6 @@ export function Navbar() {
 
           <div className="flex items-center gap-2">
             <LanguageToggle />
-            <Link href="/login" className="hidden btn-gold !px-5 !py-2.5 text-sm sm:inline-flex">
-              Tutor Login
-            </Link>
             <button
               className="grid h-10 w-10 place-items-center rounded-full border border-line text-cloud md:hidden"
               onClick={() => setOpen((v) => !v)}
@@ -90,9 +87,6 @@ export function Navbar() {
                 {l.label}
               </a>
             ))}
-            <Link href="/login" className="btn-gold mt-1 w-full">
-              Tutor Login
-            </Link>
           </div>
         )}
       </div>

@@ -32,7 +32,6 @@ export function Footer({ profile }: { profile: TutorProfile }) {
             </div>
             <div className="space-y-2">
               <p className="mb-1 text-xs uppercase tracking-wider text-sage-400">Access</p>
-              <Link href="/login" className="block text-mist hover:text-cloud">Tutor Login</Link>
               <Link href="/report" className="block text-mist hover:text-cloud">Parent Report</Link>
               <a href="#contact" className="block text-mist hover:text-cloud">Contact</a>
             </div>
