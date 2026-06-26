@@ -1,20 +1,21 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 
-// Node runtime — we write uploaded files to the local filesystem.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // ─────────────────────────────────────────────────────────────
-//  Free, folder-based file store.
-//  Images & documents are written into the app's own
-//  `public/uploads/<folder>/` directory and served as static files
-//  at `/uploads/...`. No Firebase Storage (and no billing) required.
-//  A random token is added to every filename so the path is not
-//  guessable — paid note files stay effectively private until the
-//  download link is revealed after payment approval.
+//  File upload — two backends, chosen automatically:
+//
+//  1. Vercel Blob (when BLOB_READ_WRITE_TOKEN is present, i.e. on
+//     Vercel with a Blob store linked). Free tier, works on the
+//     serverless / read-only filesystem.
+//  2. Local folder store (public/uploads/...) for self-hosting and
+//     local dev, where the filesystem is writable.
+//
+//  Either way a random token is added to the filename so paths are
+//  not guessable.
 // ─────────────────────────────────────────────────────────────
 
 const MAX_BYTES = 20 * 1024 * 1024; // 20 MB
@@ -45,14 +46,33 @@ export async function POST(req: Request) {
   }
 
   const originalName = (file as File).name || "upload";
+  const contentType = (file as File).type || "application/octet-stream";
   const token = randomBytes(8).toString("hex");
   const fileName = `${Date.now()}-${token}-${safeName(originalName)}`;
 
-  const dir = path.join(process.cwd(), "public", "uploads", folder);
-  await mkdir(dir, { recursive: true });
-  const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(dir, fileName), buffer);
+  try {
+    // 1) Vercel Blob (managed, free tier) when available.
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const { put } = await import("@vercel/blob");
+      const blob = await put(`${folder}/${fileName}`, file, {
+        access: "public",
+        contentType,
+        addRandomSuffix: false,
+      });
+      return NextResponse.json({ ok: true, url: blob.url, name: originalName, size: file.size });
+    }
 
-  const url = `/uploads/${folder}/${fileName}`;
-  return NextResponse.json({ ok: true, url, name: originalName, size: file.size });
+    // 2) Local folder store (writable filesystem).
+    const { mkdir, writeFile } = await import("fs/promises");
+    const dir = path.join(process.cwd(), "public", "uploads", folder);
+    await mkdir(dir, { recursive: true });
+    const buffer = Buffer.from(await file.arrayBuffer());
+    await writeFile(path.join(dir, fileName), buffer);
+    return NextResponse.json({ ok: true, url: `/uploads/${folder}/${fileName}`, name: originalName, size: file.size });
+  } catch (e: any) {
+    return NextResponse.json(
+      { ok: false, error: "Storage write failed: " + (e?.message || "unknown error") },
+      { status: 500 }
+    );
+  }
 }

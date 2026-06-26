@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@vercel/blob": "^2.5.0",
     "clsx": "^2.1.1",
     "firebase": "^10.13.2",
     "firebase-admin": "^12.5.0",
