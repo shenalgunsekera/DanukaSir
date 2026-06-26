@@ -1,0 +1,44 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────────────────────
+//  Firebase Storage Rules — Adeesha Tutor Platform
+//  Profile & student images are publicly readable (they appear on
+//  the public site and parent reports) but writable only by the owner.
+// ─────────────────────────────────────────────────────────────
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isOwner() {
+      return request.auth != null
+        && request.auth.token.email == 'adeesha@example.com'; // <-- set OWNER_EMAIL
+    }
+
+    function validImage() {
+      return request.resource.size < 8 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /profile/{file=**} {
+      allow read: if true;
+      allow write: if isOwner() && validImage();
+    }
+
+    match /students/{file=**} {
+      allow read: if true;
+      allow write: if isOwner() && validImage();
+    }
+
+    // Study materials — public read, owner upload (any file type, <15MB).
+    match /notes/{file=**} {
+      allow read: if true;
+      allow write: if isOwner() && request.resource.size < 15 * 1024 * 1024;
+    }
+
+    // Payment slips — anyone can upload one, only the owner can read them.
+    match /slips/{file=**} {
+      allow read: if isOwner();
+      allow create: if request.resource.size < 5 * 1024 * 1024;
+    }
+  }
+}
