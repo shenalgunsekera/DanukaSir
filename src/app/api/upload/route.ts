@@ -38,12 +38,15 @@ export async function GET() {
   const firebaseAuth = !!(
     process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
   );
+  const blobEnvKeys = Object.keys(process.env).filter((k) => /BLOB/i.test(k));
   return NextResponse.json({
     ok: true,
     onVercel,
     storage: blob ? "vercel-blob ✓" : onVercel ? "MISSING — create a Blob store" : "local-folder",
     database: firestore ? "firestore ✓" : "DEMO — data will NOT persist (add FIREBASE_ADMIN_* env vars)",
     auth: firebaseAuth ? "firebase ✓" : "simple-login (add NEXT_PUBLIC_FIREBASE_* env vars)",
+    blobEnvKeys, // names only — which BLOB* vars the deployment can actually see
+    commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || null,
   });
 }
 
